@@ -1,0 +1,36 @@
+name: Cron Node Job
+
+on:
+  # Exécution planifiée (cron en UTC)
+  schedule:
+    - cron: "0 * * * *"   # toutes les heures à HH:00 (UTC)
+  # Lancer à la main depuis l’onglet Actions
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      # Si tu as un package.json avec des deps
+      - name: Install deps
+        if: hashFiles('package-lock.json') != ''
+        run: npm ci
+
+      # Variables d’environnement (ex: secrets)
+      - name: Run script
+        env:
+          NODE_ENV: production
+        run: |
+          node script.js --mode=cron
